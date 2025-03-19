@@ -1,0 +1,6 @@
+venv
+.idea
+prototype2
+temp
+output.mp3
+__pycache__

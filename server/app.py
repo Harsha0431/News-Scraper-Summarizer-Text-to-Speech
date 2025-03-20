@@ -1,11 +1,35 @@
-import gradio as gr
 from comparative_analysis import compare_sentiments
 from text_to_speech import generate_audio
 from model import fetch_news
+import pprint
 
 
-def analyze_company(company):
-    articles = fetch_news(company)
+def get_news_summary_sentiment(company, max_articles=10, skip=0, use_gemini=False):
+    articles = fetch_news(company, max_articles, skip)
+    articles, summary = compare_sentiments(articles)
+
+    return articles, summary
+
+
+def analyze_company(company, max_articles=10, skip=0, use_gemini=False):
+    if len(company) < 3:
+        return "Company name must be at least 3 characters long.","Company name must be at least 3 characters long.", None
+
+    use_gemini = use_gemini == "Yes"
+
+    if use_gemini:
+        if max_articles > 3:
+            max_articles = 3
+    else:
+        if max_articles > 15:
+            max_articles = 15
+
+    articles, sentiment_summary = get_news_summary_sentiment(company, max_articles, skip=skip, use_gemini=use_gemini)
+
+    pprint.pprint(articles)
+
+    sentiment_summary_text = (f"Positive: {sentiment_summary['Positive']}, Negative: {sentiment_summary['Negative']}, "
+                              f"Neutral: {sentiment_summary['Neutral']}")
 
     # Creating a panel-style container with a border like the default Gradio panel
     html_content = """
@@ -53,28 +77,12 @@ def analyze_company(company):
     for article in articles:
         html_content += f"""
         <div class="grid-item">
-            <a href="{article['url']}" target="_blank">{article['title']}</a>
+            <a href="{article['URL']}" target="_blank">{article['Title']}</a>
         </div>
         """
 
     html_content += "</div></div>"
 
-    summary = compare_sentiments(articles)
-    summary_text = f"Positive: {summary['Positive']}, Negative: {summary['Negative']}, Neutral: {summary['Neutral']}"
+    audio_file = generate_audio(sentiment_summary_text)
 
-    audio_file = generate_audio(summary_text)
-
-    return html_content, summary_text, audio_file
-
-
-iface = gr.Interface(
-    fn=analyze_company,
-    inputs=gr.Textbox(label="Enter Company Name"),
-    outputs=[
-        gr.HTML(),  # News articles with summaries in a grid
-        gr.Text(label="Sentiment Summary"),
-        gr.Audio(label="Summarized News Audio", interactive=True)  # List of audio outputs
-    ],
-)
-
-iface.launch(share=True)
+    return html_content, sentiment_summary_text, audio_file

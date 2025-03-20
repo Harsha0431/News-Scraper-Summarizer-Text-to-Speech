@@ -2,9 +2,10 @@ import requests
 from bs4 import BeautifulSoup
 import time
 import pprint
+from summarizer import summarize_article_content
 
 
-def get_google_news_links(company_name, max_articles=10):
+def get_google_news_links(company_name, max_articles=10, skip=0):
     search_url = f"https://www.google.com/search?q={company_name}+news&tbm=nws"
 
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -19,7 +20,7 @@ def get_google_news_links(company_name, max_articles=10):
         if "google.com" not in url:  # Filter out Google redirect links
             links.append(url)
 
-    return links[:max_articles]
+    return links[skip:max_articles]
 
 
 def is_static_page(url):
@@ -38,49 +39,24 @@ def is_static_page(url):
         return False
 
 
-def extract_news_content(url):
-    """Extract title, summary, and metadata from a news article."""
-    headers = {"User-Agent": "Mozilla/5.0"}
-    response = requests.get(url, headers=headers)
+def extract_news_content(url, use_gemini=False):
+    final_summary = summarize_article_content(url, use_gemini=use_gemini)
 
-    if response.status_code != 200:
-        return {"error": "Failed to fetch article"}
-
-    soup = BeautifulSoup(response.text, "html.parser")
-
-    # Extract title (from <h1>, <title>, or meta tags)
-    title = soup.find("h1")
-    if not title:
-        title = soup.find("title")
-    title = title.get_text(strip=True) if title else "No title available"
-
-    # Extract all text from <article>, <div>, <p>, <span>
-    article_content = []
-    for tag in soup.find_all(["p"]):
-        text = tag.get_text(strip=True)
-        article_content.append(text)
-
-    summary = " ".join(article_content)
-
-    return {"title": title, "summary": summary, "url": url}
+    return {"Title": final_summary['Title'], "Summary": final_summary['Summary'], "URL": url}
 
 
-def get_news_articles(company_name, max_articles=10):
-    all_links = get_google_news_links(company_name, max_articles * 2)  # Fetch extra links for filtering
+def get_news_articles(company_name, max_articles=10, skip=0, use_gemini=False):
+    all_links = get_google_news_links(company_name, max_articles=max_articles * 2, skip=skip)
     static_links = [link for link in all_links if is_static_page(link)]
 
     news_data = []
-    for url in static_links[:max_articles]:
-        news_data.append(extract_news_content(url))
-        time.sleep(1)  # Avoid getting blocked
+    for url in static_links[skip:max_articles]:
+        news_data.append(extract_news_content(url, use_gemini=use_gemini))
+        time.sleep(1)
 
     return news_data
 
 
-def fetch_news(company, max_articles=10):
-    articles = get_news_articles(company, max_articles=max_articles)
-    pprint.pprint(articles)
+def fetch_news(company, max_articles=10, skip=0, use_gemini=False):
+    articles = get_news_articles(company, max_articles=max_articles, skip=skip, use_gemini=use_gemini)
     return articles
-
-
-pprint.pprint(fetch_news('Tata'))

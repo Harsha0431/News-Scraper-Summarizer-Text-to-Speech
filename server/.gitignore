@@ -4,3 +4,5 @@ prototype2
 temp
 output.mp3
 __pycache__
+.env
+.gradio

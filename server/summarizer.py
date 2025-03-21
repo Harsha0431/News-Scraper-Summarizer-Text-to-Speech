@@ -95,7 +95,7 @@ async def fetch_article_html(url):
     headers = {"User-Agent": "Mozilla/5.0"}
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
-        return {"error": "Failed to fetch article"}
+        return None, None
 
     soup = BeautifulSoup(response.text, "html.parser")
 
@@ -119,6 +119,9 @@ def safe_summarize(text, max_length=1000, min_length=25):
 
 def summarize_article_content(url, use_gemini=False):
     article_title, article_text = asyncio.run(fetch_article_html(url))
+
+    if article_title is None and article_text is None:
+        return {"Title": None, "Summary": "Error in summarization."}
 
     if use_gemini:
         gemini_response = summarize_article_content_with_gemini(article_title, article_text)
@@ -163,3 +166,39 @@ def summarize_article_content_with_gemini(article_title, article_text):
         if len(final_summary) > 0:
             return {"Title": article_title, "Summary": final_summary}
         return {"Title": clean_text(article_title), "Summary": f"Failed to summarize article due to {e}"}
+
+
+def all_articles_summary_with_gemini(data):
+    final_summary = ""
+
+    try:
+        GEMINI_API_KEY = os.getenv("GEMINI_AI_API_KEY")
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=f"""
+            Summarize the following article summaries concisely, focusing on key insights, trends, sentiment analysis, and keywords.
+            Ensure the response is structured into **four distinct sections**:
+            
+            1. **Key Insights: ** (bullet points)
+            2. **Trends: ** (bullet points)
+            3. **Sentiment Analysis; **
+            4. **Keywords: ** (each keyword separated by a comma)
+            
+            Strictly provide the response in **plain Markdown format** (without enclosing it in triple backticks or code blocks).
+            Avoid introductory phrases like "Here's a summary" or "Analyzing the articles."
+            Do not include any unnecessary explanations—only the structured content.
+            
+            Summarized data of all articles:
+            
+            {data}
+            """,
+        )
+        final_summary = response.text
+
+        return True, final_summary
+    except Exception as e:
+        print(f"Error in summarizing article with Gemini: {e}")
+        if len(final_summary) > 0:
+            return True, final_summary
+        return False, f"Failed to summarize all the articles due to {e}"

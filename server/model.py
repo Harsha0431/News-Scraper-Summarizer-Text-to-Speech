@@ -20,6 +20,9 @@ def get_google_news_links(company_name, max_articles=10, skip=0):
         if "google.com" not in url:  # Filter out Google redirect links
             links.append(url)
 
+    if max_articles < 10:
+        max_articles = max_articles*2
+
     return links[skip:max_articles]
 
 
@@ -53,8 +56,16 @@ def get_news_articles(company_name, max_articles=10, skip=0, use_gemini=False):
         return []
 
     news_data = []
-    for url in static_links[skip:max_articles]:
-        news_data.append(extract_news_content(url, use_gemini=use_gemini))
+    scrapped_articles = 0
+
+    for url in static_links:
+        if scrapped_articles >= max_articles:
+            return news_data
+
+        article = extract_news_content(url, use_gemini=use_gemini)
+        if article['Title'] is not None:
+            news_data.append(article)
+            scrapped_articles += 1
         time.sleep(1)
 
     return news_data

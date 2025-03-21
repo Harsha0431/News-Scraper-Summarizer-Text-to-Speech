@@ -20,7 +20,7 @@ def complete_ui():
         fn=analyze_company,
         inputs=[
             gr.Textbox(label="Enter Company Name"),
-            gr.Number(label="Max Articles (Less than 15)", value=10, minimum=1, maximum=15, step=1),
+            gr.Number(label="Max Articles (Less than 10)", value=5, minimum=1, maximum=10, step=1),
             gr.Number(label="Skip Value (Pagination)", value=0, minimum=0, step=1),
             gr.Radio(
                 ["No", "Yes"],

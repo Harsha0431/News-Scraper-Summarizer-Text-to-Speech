@@ -6,7 +6,7 @@ from summarizer import summarize_article_content
 
 
 def get_google_news_links(company_name, max_articles=10, skip=0):
-    search_url = f"https://www.google.com/search?q={company_name}+news&tbm=nws"
+    search_url = f'https://www.google.com/search?q=company:"{company_name}"+news&tbm=nws'
 
     headers = {"User-Agent": "Mozilla/5.0"}
 
@@ -48,6 +48,9 @@ def extract_news_content(url, use_gemini=False):
 def get_news_articles(company_name, max_articles=10, skip=0, use_gemini=False):
     all_links = get_google_news_links(company_name, max_articles=max_articles * 2, skip=skip)
     static_links = [link for link in all_links if is_static_page(link)]
+
+    if len(static_links) == 0:
+        return []
 
     news_data = []
     for url in static_links[skip:max_articles]:

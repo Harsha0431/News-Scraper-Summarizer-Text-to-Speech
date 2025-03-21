@@ -102,7 +102,7 @@ async def fetch_article_html(url):
     title = soup.find("h1")
     if not title:
         title = soup.find("title")
-    title = title.get_text(strip=True) if title else "No title available"
+    title = title.get_text(strip=True) if title else "Failed to get title"
 
     async with Translator() as translator:
         translated = await translator.translate(title, dest='en')
@@ -122,10 +122,10 @@ def summarize_article_content(url, use_gemini=False):
 
     if use_gemini:
         gemini_response = summarize_article_content_with_gemini(article_title, article_text)
-        print(gemini_response)
         if "Failed to summarize article due to" not in gemini_response["Summary"]:
-            print("ERROR IN gemini_response")
             return gemini_response
+        else:
+            print("ERROR IN gemini_response")
 
     chunks = split_text(article_text, max_chars=1000)
 

@@ -3,13 +3,25 @@ from langdetect import detect
 from googletrans import Translator
 import gradio as gr
 import asyncio
+import os
+import time
+import random
+
+
+os.makedirs("audio", exist_ok=True)
 
 
 def generate_audio(text, lang="hi"):
     text = asyncio.run(translate_text(text))
+
     tts = gTTS(text=text, lang=lang, slow=False)
-    tts.save("output.mp3")
-    return "output.mp3"
+
+    timestamp = int(time.time())  # Current timestamp
+    random_value = random.randint(1000, 9999)
+    filename = f"audio/{timestamp}_{random_value}.mp3"
+
+    tts.save(filename)
+    return filename
 
 
 async def translate_text(text, target_lang='hi'):

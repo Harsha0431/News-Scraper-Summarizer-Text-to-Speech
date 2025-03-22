@@ -3,6 +3,7 @@ from text_to_speech import generate_audio
 from model import fetch_news
 import pprint
 import gradio as gr
+import time
 
 
 def get_news_summary_sentiment(company, max_articles=10, skip=0, use_gemini=False):
@@ -89,6 +90,7 @@ def analyze_company(company, max_articles=10, skip=0, use_gemini=False):
                               f"Neutral: {sentiment_summary['Neutral']}")
 
     for article in articles:
+        time.sleep(1)
         article['Audio'] = generate_audio(article['Summary'])
 
     audio_file = generate_audio(sentiment_summary_text)

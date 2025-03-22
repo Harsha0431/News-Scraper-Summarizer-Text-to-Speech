@@ -11,7 +11,6 @@ from dotenv import load_dotenv
 from googletrans import Translator
 import asyncio
 
-
 load_dotenv()
 
 model_name = "facebook/bart-large-cnn"
@@ -22,7 +21,7 @@ model = AutoModelForSeq2SeqLM.from_pretrained("facebook/bart-large-cnn")
 def clean_text(text):
     """Normalize and remove non-ASCII characters."""
     text = unicodedata.normalize("NFKD", text)  # Normalize special characters
-    text = re.sub(r"[^\x00-\x7F]+", "", text)   # Remove non-ASCII characters
+    text = re.sub(r"[^\x00-\x7F]+", "", text)  # Remove non-ASCII characters
     text = re.sub(r'\n+', '\n', text)  # Replace multiple newlines with a single newline
     text = re.sub(r'\s+', ' ', text)  # Replace multiple spaces with a single space
     return text.strip()
@@ -150,6 +149,11 @@ def summarize_article_content_with_gemini(article_title, article_text):
     final_summary = ""
     try:
         GEMINI_API_KEY = os.getenv("GEMINI_AI_API_KEY")
+
+        if GEMINI_API_KEY is None:
+            return {"Title": clean_text(article_title),
+                    "Summary": f"Failed to summarize article due to Gemini model is unavailable."}
+
         client = genai.Client(api_key=GEMINI_API_KEY)
         response = client.models.generate_content(
             model="gemini-2.0-flash",
@@ -171,34 +175,88 @@ def summarize_article_content_with_gemini(article_title, article_text):
 def all_articles_summary_with_gemini(data):
     final_summary = ""
 
+    return True, "Test"
+
+#     try:
+#         GEMINI_API_KEY = os.getenv("GEMINI_AI_API_KEY")
+#
+#         if GEMINI_API_KEY is None:
+#             return False, f"Gemini model is currently unavailable, so the articles couldn't be summarized."
+#
+#         prompt = f"""
+# Summarize the following article summaries concisely, focusing on key insights, trends, sentiment analysis, and keywords.
+# Ensure the response is structured into **four distinct sections**:
+#
+# 1. **Key Insights: ** (bullet points)
+# 2. **Trends: ** (bullet points)
+# 3. **Sentiment Analysis: **
+# 4. **Keywords: ** (each keyword separated by a comma)
+#
+# Strictly provide the response in **plain Markdown format** (without enclosing it in triple backticks or code blocks).
+# Avoid introductory phrases like "Here's a summary" or "Analyzing the articles."
+# Do not include any unnecessary explanations—only the structured content.
+#
+# Summarized data of all articles:
+#
+# {data}
+# """
+#
+#         client = genai.Client(api_key=GEMINI_API_KEY)
+#
+#         response = client.models.generate_content(
+#             model="gemini-2.0-flash",
+#             contents=prompt
+#         )
+#
+#         final_summary = response.text
+#
+#         return True, final_summary
+#     except Exception as e:
+#         print(f"Error in summarizing article with Gemini: {e}")
+#         if len(final_summary) > 0:
+#             return True, final_summary
+#         return False, f"Failed to summarize all the articles due to {e}"
+
+
+def all_articles_comparative_analysis_with_gemini(data):
+    final_summary = ""
+
     try:
         GEMINI_API_KEY = os.getenv("GEMINI_AI_API_KEY")
+
+        if GEMINI_API_KEY is None:
+            return False, f"Gemini model is currently unavailable, so the articles couldn't be summarized."
+
+        prompt = f"""
+Conduct a **comparative sentiment analysis** on the following articles to derive insights on how the company's news coverage varies.  
+Ensure the response is structured into **four distinct sections**:
+
+1. **Overall Sentiment Distribution:** (Summarize how the sentiment is distributed across the articles, mentioning whether the majority are positive, neutral, or negative.)
+2. **Key Positive Themes:** (List the key positive aspects frequently highlighted in the articles.)
+3. **Key Negative Themes:** (List the key negative aspects frequently mentioned in the articles.)
+4. **Comparative Insights:** (Compare the sentiment trends across the articles, highlighting any shifts, variations, or patterns over time.)
+
+Strictly provide the response in **plain Markdown format** (without enclosing it in triple backticks or code blocks).  
+Avoid introductory phrases like "Here's an analysis" or "Analyzing the articles."  
+Do not include any unnecessary explanations—only the structured content.
+
+Summarized data of all articles:
+
+{data}
+"""
+
         client = genai.Client(api_key=GEMINI_API_KEY)
+
         response = client.models.generate_content(
             model="gemini-2.0-flash",
-            contents=f"""
-            Summarize the following article summaries concisely, focusing on key insights, trends, sentiment analysis, and keywords.
-            Ensure the response is structured into **four distinct sections**:
-            
-            1. **Key Insights: ** (bullet points)
-            2. **Trends: ** (bullet points)
-            3. **Sentiment Analysis; **
-            4. **Keywords: ** (each keyword separated by a comma)
-            
-            Strictly provide the response in **plain Markdown format** (without enclosing it in triple backticks or code blocks).
-            Avoid introductory phrases like "Here's a summary" or "Analyzing the articles."
-            Do not include any unnecessary explanations—only the structured content.
-            
-            Summarized data of all articles:
-            
-            {data}
-            """,
+            contents=prompt
         )
+
         final_summary = response.text
 
         return True, final_summary
     except Exception as e:
-        print(f"Error in summarizing article with Gemini: {e}")
+        print(f"Error in providing comparative analysis article with Gemini: {e}")
         if len(final_summary) > 0:
             return True, final_summary
-        return False, f"Failed to summarize all the articles due to {e}"
+        return False, f"Failed to providing comparative analysis due to {e}"

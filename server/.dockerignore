@@ -5,6 +5,7 @@ temp
 output.mp3
 __pycache__
 .env
+.env.*
 .gradio
 gradio_test_ui.py
 audio

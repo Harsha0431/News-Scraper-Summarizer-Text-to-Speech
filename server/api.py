@@ -19,24 +19,23 @@ def get_news():
         if not company:
             return jsonify({"error": "Company name is required"}), 400
 
-        limit = request.args.get('limit', '')
-        if not limit:
-            limit = 5
-        else:
+        if len(company) < 3:
+            return jsonify({"error": "Company name must be at least 3 characters long."}), 400
+
+        limit = request.args.get('limit', 5)
+        if isinstance(limit, str):
             try:
                 limit = int(limit)
                 if limit > 10:
                     limit = 10
-            except Exception as e:
+            except Exception:
                 limit = 5
 
-        skip = request.args.get('skip', '')
-        if not skip:
-            skip = 0
-        else:
+        skip = request.args.get('skip', 0)
+        if isinstance(skip, str):
             try:
                 skip = int(skip)
-            except Exception as e:
+            except Exception:
                 skip = 0
 
         use_gemini_ai = request.args.get("gemini", False)
@@ -46,9 +45,8 @@ def get_news():
         else:
             use_gemini_ai = False
 
-        if use_gemini_ai:
-            if limit > 5:
-                limit = 5
+        if use_gemini_ai and limit > 5:
+            limit = 5
 
         articles, sentiment_summary = get_news_summary_sentiment(company, limit, skip, use_gemini_ai)
 
@@ -151,7 +149,6 @@ try:
     PORT = int(PORT)
 except ValueError:
     PORT = 5000
-
 
 if __name__ == '__main__':
     app.run(debug=True, host="0.0.0.0", port=PORT)

@@ -12,6 +12,7 @@ os.makedirs("audio", exist_ok=True)
 
 
 def generate_audio(text, lang="hi"):
+    print(text)
     text = asyncio.run(translate_text(text))
 
     tts = gTTS(text=text, lang=lang, slow=False)

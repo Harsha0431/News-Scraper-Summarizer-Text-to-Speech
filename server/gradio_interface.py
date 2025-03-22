@@ -1,7 +1,7 @@
 import gradio as gr
 from app import analyze_company
 from text_to_speech import generate_audio
-from utils import get_news_ui_css
+from utils import get_news_ui_css, markdown_to_plain_text
 from summarizer import all_articles_summary_with_gemini
 
 
@@ -22,7 +22,8 @@ def complete_ui():
         "DataFetched": False,
         "Data": None,
         "Failed": False,
-        "FailedMessage": None
+        "FailedMessage": None,
+        "AudioSummary": None
     })
 
     articles_list_state = gr.State(value=[])
@@ -93,6 +94,7 @@ def complete_ui():
                 with gr.Column(visible=False) as overview_success_content:
                     gr.Markdown("## Overall Insights & Summary")
                     # summarize_all_state.value["Data"]
+                    overview_summary_audio = gr.Audio(label="Audio", interactive=False, min_width=250)
                     overview_summary_output = gr.Markdown()
 
                 with gr.Column(visible=False) as overview_loading_content:
@@ -136,6 +138,7 @@ def complete_ui():
                                         overview_loading_content,  # Loading content visibility
                                         overview_failure_content,  # Failure content visibility
                                         overview_summary_output,  # Success content data
+                                        overview_summary_audio,  # Audio summary
                                         overview_failure_output,  # Failure content data
                                     ])
 
@@ -146,18 +149,18 @@ def complete_ui():
                 overview_loading_content,  # Loading content visibility
                 overview_failure_content,  # Failure content visibility
                 overview_summary_output,  # Success content data
+                overview_summary_audio,  # Summary audio
                 overview_failure_output,  # Failure content data
             ])
 
         def reset_ui_for_new_search():
-            print("Came to reset")
             summarize_all_state.value["DataFetched"] = False,
             summarize_all_state.value["Data"] = None,
             summarize_all_state.value["Failed"] = False,
             summarize_all_state.value["FailedMessage"] = None
+            summarize_all_state.value["AudioSummary"] = None
 
             articles_list_state.value = []
-            print(summarize_all_state.value)
 
             return (
                 gr.update(visible=False),  # Show the tab
@@ -165,10 +168,12 @@ def complete_ui():
                 gr.update(visible=False),  # Hide the loading content
                 gr.update(visible=False),  # Hide the failure content
                 summarize_all_state.value["Data"],  # Update the success content
+                summarize_all_state.value["AudioSummary"],
                 summarize_all_state.value["FailedMessage"],  # Update failed message
             )
 
         def tab_switched():
+            gr.Info("Loading overall insights & summary...", duration=30)
             summarize_all_state.value["Failed"] = False
             summarize_all_state.value["FailedMessage"] = None
             if summarize_all_state.value["DataFetched"]:
@@ -179,6 +184,7 @@ def complete_ui():
                     gr.update(visible=False),  # Hide the loading content
                     gr.update(visible=False),  # Hide the failure content
                     summarize_all_state.value["Data"],  # Update the success content
+                    summarize_all_state.value["AudioSummary"],  # Audio summary
                     summarize_all_state.value["FailedMessage"],  # Update failed message
                 )
             try:
@@ -199,6 +205,7 @@ def complete_ui():
                     summarize_all_state.value["FailedMessage"] = all_summary_response_data
                     summarize_all_state.value["Data"] = None
                     summarize_all_state.value["DataFetched"] = False
+                    summarize_all_state.value["AudioSummary"] = None
                     raise gr.Error(all_summary_response_data)
 
                 summarize_all_state.value["Failed"] = False
@@ -207,6 +214,9 @@ def complete_ui():
                 summarize_all_state.value["DataFetched"] = all_summary_response_status
                 summarize_all_state.value["Data"] = all_summary_response_data
 
+                summarize_all_state.value["AudioSummary"] = generate_audio(markdown_to_plain_text(
+                    all_summary_response_data))
+
             except Exception as e:
                 prev_summarize_all_state_failed = summarize_all_state.value["Failed"]
                 if not prev_summarize_all_state_failed:
@@ -214,6 +224,7 @@ def complete_ui():
                     summarize_all_state.value["FailedMessage"] = f"Failed to summarize all the articles due to {e}"
                     summarize_all_state.value["Data"] = None
                     summarize_all_state.value["DataFetched"] = False
+                    summarize_all_state.value["AudioSummary"] = None
                     raise gr.Error(f"Failed to summarize all the articles due to {e}")
 
             gr.Info("Please switch to Overall Insights & Summary tab.")
@@ -223,6 +234,7 @@ def complete_ui():
                 gr.update(visible=False),  # Hide the loading content
                 gr.update(visible=False),  # Hide the failure content
                 summarize_all_state.value["Data"],  # Update the success content
+                summarize_all_state.value["AudioSummary"],  # Audio summary
                 summarize_all_state.value["FailedMessage"],  # Update failed message
             )
 

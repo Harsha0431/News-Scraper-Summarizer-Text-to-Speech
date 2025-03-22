@@ -1,0 +1,12 @@
+venv
+.idea
+prototype2
+temp
+output.mp3
+__pycache__
+.env
+.gradio
+gradio_test_ui.py
+audio
+
+Gradio Custom Components

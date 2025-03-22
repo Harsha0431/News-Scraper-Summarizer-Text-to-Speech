@@ -7,7 +7,6 @@ import os
 import time
 import random
 
-
 AUDIO_DIR = "audio"
 os.makedirs(AUDIO_DIR, exist_ok=True)
 
@@ -27,16 +26,17 @@ def clean_old_audio(max_age_seconds=7200):  # 2 hour
 
 
 def generate_audio(text, lang="hi"):
-    text = asyncio.run(translate_text(text))
-
-    tts = gTTS(text=text, lang=lang, slow=False)
-
-    timestamp = int(time.time())  # Current timestamp
-    random_value = random.randint(1000, 9999)
-    filename = f"{AUDIO_DIR}/{timestamp}_{random_value}.mp3"
-
-    tts.save(filename)
-    return filename
+    try:
+        text = asyncio.run(translate_text(text, lang))
+        tts = gTTS(text, lang=lang)
+        timestamp = int(time.time())  # Current timestamp
+        random_value = random.randint(1000, 9999)
+        filename = f"{AUDIO_DIR}/{timestamp}_{random_value}.mp3"
+        tts.save(filename)
+        return filename
+    except Exception as e:
+        print(f"Error generating audio: {e}")
+        return "failed_hi.mp3" if lang == "hi" else "failed_en.mp3"
 
 
 async def translate_text(text, target_lang='hi'):

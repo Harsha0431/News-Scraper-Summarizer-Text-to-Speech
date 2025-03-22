@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import time
-import pprint
 from summarizer import summarize_article_content
 
 

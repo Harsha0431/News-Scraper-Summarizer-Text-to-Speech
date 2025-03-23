@@ -1,26 +1,26 @@
-
 # AI News Scraper & Summarizer with Text-to-Speech
 
-## Introduction
+## **Introduction**
 
 This project is a **learning-focused exploration** of AI-powered text processing, **news summarization**, and **Flask API handling** using **Hugging Face models** and **Gradio** for UI.
 
 
 ## Table of Content
 
-1. [Key Features & Workflow](#Key%20Features%20&%20Workflow)
+1. [Key Features & Workflow](#Key-Features--Workflow)
 2. [Objectives](#Objectives)
-3. [Tech Stack Used](#Tech%20Stack%20Used)
-4. [Approach & Explorations](#Approach%20&%20Explorations)
-5. [Setup & Installation](#Setup%20&%20Installation)
-6. [Future Enhancements](Future%20Enhancements)
-7. [Need Help?](#Need%20Help?)
+3. [Tech Stack Used](#Tech-Stack-Used)
+4. [Approach & Explorations](#Approach--Explorations)
+5. [Performance Analysis](#Performance-Analysis)
+6. [Setup & Installation](#Setup--Installation)
+7. [Future Enhancements](#Future-Enhancements)
+8. [Need Help?](#Need-Help)
 
 
-### Key Features & Workflow:
+## **Key Features & Workflow:**
 
 1. **Scrape News** → Fetch up to **10 news articles** (title and content) from Google News based on a company name.
-2. **Summarization & Analysis** → Use **BART and Gemini AI** to generate:
+2. **Summarization & Analysis** → Use **BART and Gemini API** to generate:
 	- Summarization
     - Key insights and trends
     - Sentiment analysis
@@ -28,6 +28,15 @@ This project is a **learning-focused exploration** of AI-powered text processing
     - Comparative insights
 3. **Text-to-Speech** → Convert summaries into **speech output** for accessibility.
 4. **Flask API Integration** → A **Flask backend** was explored to handle user requests and return responses in JSON format.
+
+News Article Processing Funnel
+Web Scraping
+Article Summarization
+Display Summary
+Insights Generation![image](https://github.com/user-attachments/assets/ab4b4d44-31a7-4a6f-81d0-187569105ac3)
+
+
+
 
 While this is not a full **Retrieval-Augmented Generation (RAG) model**, it follows a similar **fetch-process-generate** workflow. This project helped me get started with:
 
@@ -39,7 +48,7 @@ While this is not a full **Retrieval-Augmented Generation (RAG) model**, it foll
 This project serves as a foundational step toward building more advanced AI applications.
 
 
-## Objectives
+## **Objectives**
 
 This project primarily focuses on **learning and exploration** of AI-powered text processing, summarization, and API handling using **Hugging Face models**, **Google News scraping**, and **Gradio UI**.
 
@@ -50,7 +59,7 @@ This project primarily focuses on **learning and exploration** of AI-powered tex
     - Identify and filter **static pages** (excluding JavaScript-heavy content).
     - Fetch and store up to **10 relevant articles** for further processing.
 
-2. **Summarization using LLMs (BART & Gemini AI)**
+2. **Summarization using LLMs (BART & Gemini API)**
     - Use `facebook/bart-large-cnn` (efficient yet powerful) for summarization.
     - **Chunk large articles** into smaller parts, summarize each, and combine the results.
     - Optionally use **Gemini API** for high-quality, multi-faceted summaries.
@@ -59,7 +68,7 @@ This project primarily focuses on **learning and exploration** of AI-powered tex
     - Convert summarized text to **speech output** using `gTTS` for accessibility.
 
 4. **Insight Extraction & Sentiment Analysis**
-    - Utilize **Gemini AI** to analyze trends, positive/negative points, and comparisons.
+    - Utilize **Gemini API** to analyze trends, positive/negative points, and comparisons.
     - Generate **actionable insights** from summarized content.
 
 5. **Build an AI-powered UI using Gradio**
@@ -77,13 +86,13 @@ This project primarily focuses on **learning and exploration** of AI-powered tex
 - **Using LLMs & Flask together** to create an end-to-end AI pipeline.
 
 
-## Tech Stack Used
+## **Tech Stack Used**
 
 This project integrates **AI models, web scraping, and Flask API development** with various libraries and tools.
 
 ### 1. AI & NLP Models
    - **Transformers (`transformers`)** – Used Hugging Face’s `facebook/bart-large-cnn` for **text summarization**.
-   - **Gemini AI (Gemini 2.0 Flash)** – Provides **deep insights, comparative analysis, and sentiment understanding**.
+   - **Gemini API (Gemini 2.0 Flash)** – Provides **deep insights, comparative analysis, and sentiment understanding**.
    - **TextBlob (`textblob`)** – Used for **initial sentiment analysis** of news titles and content.
 
 ### 2. Web Scraping & Data Processing
@@ -103,7 +112,7 @@ This project integrates **AI models, web scraping, and Flask API development** w
 - **Docker – Containerizes the application to ensure **portability and scalability**.
 
 
-## Approach & Explorations  
+## **Approach & Explorations**  
 
 ### **How did I approach building the project?**  
 
@@ -112,7 +121,7 @@ The development process followed a structured, objective-driven workflow:
 1. **Scraping Data** – Extracted **news links** from Google News using **BeautifulSoup** while handling JavaScript-heavy pages.  
 2. **Fetching Article Content** – Retrieved **titles and full content** from extracted URLs while ensuring minimal noise.  
 3. **Summarization** – Processed the article content using **Hugging Face’s `facebook/bart-large-cnn` model** for extracting key points.  
-4. **Sentiment & Insights** – Applied **TextBlob** for initial sentiment analysis and **Gemini AI** for deeper insights and comparative analysis.  
+4. **Sentiment & Insights** – Applied **TextBlob** for initial sentiment analysis and **Gemini API** for deeper insights and comparative analysis.  
 5. **Text-to-Speech Conversion** – Used **gTTS** to generate **audio output** for summarized content.  
 
 
@@ -124,7 +133,15 @@ The development process followed a structured, objective-driven workflow:
 
 - **Handling Different Article Formats**  
   - Some articles had **incomplete or misleading metadata**, affecting content extraction.  
-  - **Solution:** Applied **heuristic filtering** to remove unnecessary elements and improve extracted text quality.  
+  - **Solution:** Applied **heuristic filtering** to remove unnecessary elements and improve extracted text quality. 
+
+- **Model Selection & Exploration**
+  - Tested models like **Deepseek, Mistral, Phi-2, Ollama, Falcon**, but found them **too resource-intensive**.
+  - **Final Decision:** Chose `BART-Large-CNN` for its **efficiency & summarization quality**.
+
+- **Resource Constraints**
+  - **Challenge:** Running large Hugging Face models on **16GB RAM + GTX 1650**.
+  - **Solution:** Used **model quantization & batch processing** to optimize performance.
 
 
 ### **Exploring Different Models Before Finalizing One**  
@@ -138,7 +155,16 @@ Before finalizing **BART-Large-CNN**, I explored various **open-source AI models
 After testing, **BART-Large-CNN** was chosen for its **efficiency, lightweight processing, and high-quality summaries**. It was also well-suited to our content, allowing us to explore key concepts like **chunking and sliding window processing** for handling large text inputs effectively.
 
 
-## Setup & Installation  
+## **Performance Analysis**
+
+| **Metric**                                                                                                                                          | **Value**                                                                              |
+| --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Scrapping and providing summary for each article with TTS (Hindi)                                                                                   | **30-50 sec/article** (Needs optimization)<br><sub>30-40 sec/article with Gemini</sub> |
+| **Overview**<br><sub>Key Insights, Trends, Sentiment analysis, and Keywords</sub>                                                                   | *1-2 minutes**                                                                         |
+| **Comparative Sentiment Analysis**<br><sub>Overall Sentiment Distribution, Key Positive Themes, Key Negative Themes, and Comparative Insights</sub> | **1-2 minutes**                                                                        |
+
+
+## **Setup & Installation**  
 
 Follow these steps to set up and run the project:  
 ### 0. Prerequisites
@@ -200,7 +226,7 @@ This starts the **Flask backend API**.
 >**_NOTE:_** Extracting and summarizing data **may take up to 1 minute per article**, depending on content length and API response time.
 
 
-## Future Enhancements  
+## **Future Enhancements**
 
 ### 1. Expanding News Sources
 - We can enhance web scraping by leveraging **Google News search queries** to fetch more relevant news articles:
@@ -223,7 +249,7 @@ This starts the **Flask backend API**.
 - Expand **Gradio UI functionalities**, allowing users to interactively select articles and customize summary length.  
 
 
-## Need Help?  
+## **Need Help?**
 
 I’d love to hear your suggestions and feedback! Your insights can help improve the project and make it more efficient.  
 

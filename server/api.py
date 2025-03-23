@@ -15,8 +15,8 @@ app = Flask(__name__)
 @app.route('/api/news/summarize', methods=['GET'])
 def get_news():
     try:
-        company = request.args.get('company', '')
-        if not company:
+        company = request.args.get('company')
+        if company is None:
             return jsonify({"error": "Company name is required"}), 400
 
         if len(company) < 3:

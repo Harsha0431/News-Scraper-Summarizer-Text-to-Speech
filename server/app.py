@@ -18,29 +18,30 @@ def text_to_speech_interface():
 
 
 def complete_ui():
-    summarize_all_state = gr.State(value={
-        "DataFetched": False,
-        "Data": None,
-        "Failed": False,
-        "FailedMessage": None,
-        "AudioSummary": None
-    })
-
-    comparative_analysis_state = gr.State(value={
-        "DataFetched": False,
-        "Data": None,
-        "Failed": False,
-        "FailedMessage": None,
-        "AudioSummary": None,
-        "AccordionData": None
-    })
-
-    articles_list_state = gr.State(value=[])
-
-    sentiment_summary_state = gr.State(value=None)
 
     with ((gr.Blocks(css=get_news_ui_css(), theme=gr.themes.Default(text_size=gr.themes.sizes.text_lg))) as news_ui):
         gr.Markdown("## Company News Summary")
+
+        summarize_all_state = gr.State(value={
+            "DataFetched": False,
+            "Data": None,
+            "Failed": False,
+            "FailedMessage": None,
+            "AudioSummary": None
+        })
+
+        comparative_analysis_state = gr.State(value={
+            "DataFetched": False,
+            "Data": None,
+            "Failed": False,
+            "FailedMessage": None,
+            "AudioSummary": None,
+            "AccordionData": None
+        })
+
+        articles_list_state = gr.State(value=[])
+
+        sentiment_summary_state = gr.State(value=None)
 
         # Input fields
         with gr.Column(elem_classes='input_container'):
@@ -57,6 +58,7 @@ def complete_ui():
                     info="Gemini AI can extract a maximum of 5 articles at a time. Avoid excessive usage.",
                     min_width=300
                 )
+
             with gr.Row(elem_classes='center_items'):
                 submit_btn = gr.Button("Get News", elem_classes='btn__get_news', min_width=300)
                 reset_btn = gr.Button("Reset", min_width=300)
@@ -65,13 +67,14 @@ def complete_ui():
         def render_data(company_name_val, max_articles_val, skip_value_val, use_gemini_val):
             try:
                 if len(articles_list_state.value) > 0:
+                    reset_ui_for_new_search()
                     gr.Warning("Please click on Reset button and refresh the page before searching for a new query.")
                     return
 
                 info_duration = 30 if use_gemini_val == "Yes" else 40
 
                 gr.Info(f"Hang tight... Loading articles related to {company_name_val}",
-                        duration=max_articles_val*info_duration)
+                        duration=max_articles_val * info_duration)
 
                 article_list, sentiment_summary, summary_audio = analyze_company(company_name_val, max_articles_val,
                                                                                  skip_value_val, use_gemini_val)
@@ -80,12 +83,15 @@ def complete_ui():
                 sentiment_summary_state.value = sentiment_summary
 
                 if isinstance(article_list, str):
-                    raise gr.Error(article_list)
+                    gr.Warning(article_list)
+                    return
 
                 with gr.Tab(label="Articles"):
                     with gr.Row():
-                        overview_show_btn = gr.Button(value="Get Overall Insights & Summary", visible=True, min_width=300)
-                        comparative_analysis_btn = gr.Button(value="Get Comparative Analysis", visible=True, min_width=300)
+                        overview_show_btn = gr.Button(value="Get Overall Insights & Summary", visible=True,
+                                                      min_width=300)
+                        comparative_analysis_btn = gr.Button(value="Get Comparative Analysis", visible=True,
+                                                             min_width=300)
 
                     with gr.Column():
                         article_index = 0
@@ -196,6 +202,51 @@ def complete_ui():
                     overview_failure_output,  # Failure content data
                 ])
 
+                def unload_news_ui():
+                    overview_tab.visible = False  # Tab visibility
+                    overview_success_content.visible = False  # Success content visibility
+                    overview_loading_content.visible = False  # Loading content visibility
+                    overview_failure_content.visible = False  # Failure content visibility
+
+                    # Analysis tab data
+                    analysis_tab.visible = False  # Tab visibility
+                    analysis_success_content.visible = False  # Success content visibility
+                    analysis_loading_content.visible = False  # Loading content visibility
+                    analysis_failure_content.visible = False  # Failure content visibility
+
+                    summarize_all_state.value["DataFetched"] = False
+                    summarize_all_state.value["Data"] = None
+                    summarize_all_state.value["Failed"] = False
+                    summarize_all_state.value["FailedMessage"] = None
+                    summarize_all_state.value["AudioSummary"] = None
+
+                    comparative_analysis_state.value["DataFetched"] = False
+                    comparative_analysis_state.value["Data"] = None
+                    comparative_analysis_state.value["Failed"] = False
+                    comparative_analysis_state.value["FailedMessage"] = None
+                    comparative_analysis_state.value["AudioSummary"] = None
+                    comparative_analysis_state.value["AccordionData"] = None
+
+                    sentiment_summary_state.value = None
+
+                    articles_list_state.value = []
+
+                # Unload gradio component
+                news_ui.unload(fn=unload_news_ui)
+
+                # Comparative analysis btn
+                comparative_analysis_btn.click(fn=get_comparative_analysis_data, inputs=[], outputs=[
+                    comparative_analysis_btn,  # Comparative analysis btn visibility
+                    analysis_tab,  # Tab visibility
+                    analysis_success_content,  # Success content visibility
+                    analysis_loading_content,  # Loading content visibility
+                    analysis_failure_content,  # Failure content visibility
+                    analysis_summary_output,  # Success content data
+                    analysis_summary_audio,  # Analysis audio
+                    analysis_failure_output,  # Failure content data
+                    analysis_articles_indies  # Accordion data
+                ])
+
                 # Reset fields for new query
                 reset_btn.click(fn=reset_ui_for_new_search, inputs=[], outputs=[
                     overview_tab,  # Tab visibility
@@ -221,35 +272,27 @@ def complete_ui():
                     articles_list_state
                 ])
 
-                # Comparative analysis btn
-                comparative_analysis_btn.click(fn=get_comparative_analysis_data, inputs=[], outputs=[
-                    comparative_analysis_btn,  # Comparative analysis btn visibility
-                    analysis_tab,  # Tab visibility
-                    analysis_success_content,  # Success content visibility
-                    analysis_loading_content,  # Loading content visibility
-                    analysis_failure_content,  # Failure content visibility
-                    analysis_summary_output,  # Success content data
-                    analysis_summary_audio,  # Analysis audio
-                    analysis_failure_output,  # Failure content data
-                    analysis_articles_indies  # Accordion data
-                ])
             except Exception as e:
                 gr.Warning(f"Something went wrong due to {e}")
                 return
 
         def reset_ui_for_new_search():
-            summarize_all_state.value["DataFetched"] = False
-            summarize_all_state.value["Data"] = None
-            summarize_all_state.value["Failed"] = False
-            summarize_all_state.value["FailedMessage"] = None
-            summarize_all_state.value["AudioSummary"] = None
+            summarize_all_state.value = {
+                "DataFetched": False,
+                "Data": None,
+                "Failed": False,
+                "FailedMessage": None,
+                "AudioSummary": None
+            }
 
-            comparative_analysis_state.value["DataFetched"] = False
-            comparative_analysis_state.value["Data"] = None
-            comparative_analysis_state.value["Failed"] = False
-            comparative_analysis_state.value["FailedMessage"] = None
-            comparative_analysis_state.value["AudioSummary"] = None
-            comparative_analysis_state.value["AccordionData"] = None
+            comparative_analysis_state.value = {
+                "DataFetched": False,
+                "Data": None,
+                "Failed": False,
+                "FailedMessage": None,
+                "AudioSummary": None,
+                "AccordionData": None
+            }
 
             sentiment_summary_state.value = None
 

@@ -98,6 +98,7 @@ def markdown_to_plain_text(md_text):
 
     # Replace multiple newlines with a single newline
     plain_text = re.sub(r'\n+', '\n', plain_text).strip()
+    plain_text = re.sub(r'\*+', '', plain_text)
 
     return plain_text
 

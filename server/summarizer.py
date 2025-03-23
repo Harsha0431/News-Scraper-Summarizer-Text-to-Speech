@@ -1,5 +1,4 @@
 import os
-import pprint
 import requests
 from bs4 import BeautifulSoup
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
@@ -138,6 +137,7 @@ text: {article_text}
 
 
 def all_articles_summary_with_gemini(data):
+
     final_summary = ""
 
     try:
@@ -173,22 +173,26 @@ Summarized data of all articles:
 
         final_summary = response.text
 
+        if final_summary is None:
+            return False, f"Failed to summarize and provide insights of all the articles."
+
         return True, final_summary
     except Exception as e:
-        print(f"Error in summarizing article with Gemini: {e}")
-        if len(final_summary) > 0:
+        print(f"Error in summarizing all the articles with Gemini: {e}")
+        if final_summary is not None and len(final_summary) > 0:
             return True, final_summary
-        return False, f"Failed to summarize all the articles due to {e}"
+        return False, f"Failed to summarize and provide insights of all the articles due to {e}"
 
 
 def all_articles_comparative_analysis_with_gemini(data):
+
     final_summary = ""
 
     try:
         GEMINI_API_KEY = os.getenv("GEMINI_AI_API_KEY")
 
         if GEMINI_API_KEY is None:
-            return False, f"Gemini model is currently unavailable, so the articles couldn't be summarized."
+            return False, f"Gemini model is currently unavailable, so the articles couldn't be analyzed."
 
         prompt = f"""
 Conduct a **comparative sentiment analysis** on the following articles to derive insights on how the company's news coverage varies.  
@@ -217,9 +221,12 @@ Summarized data of all articles:
 
         final_summary = response.text
 
+        if final_summary is None:
+            return False, f"Failed to provide comparative analysis."
+
         return True, final_summary
     except Exception as e:
         print(f"Error in providing comparative analysis article with Gemini: {e}")
-        if len(final_summary) > 0:
+        if final_summary is not None and len(final_summary) > 0:
             return True, final_summary
-        return False, f"Failed to providing comparative analysis due to {e}"
+        return False, f"Failed to provide comparative analysis due to {e}"

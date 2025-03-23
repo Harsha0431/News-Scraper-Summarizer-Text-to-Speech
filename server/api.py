@@ -1,11 +1,18 @@
+import os
+
 from flask import Flask, request, jsonify, send_file
-from app import get_news_summary_sentiment
+from utils import get_news_summary_sentiment
 from text_to_speech import generate_audio
+from summarizer import all_articles_summary_with_gemini, all_articles_comparative_analysis_with_gemini
+import io
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
 
-@app.route('/news/summarize', methods=['GET'])
+@app.route('/api/news/summarize', methods=['GET'])
 def get_news():
     try:
         company = request.args.get('company', '')
@@ -60,7 +67,7 @@ def get_news():
         return jsonify({"error": f"Failed to get related dues articles due to {e}"}), 500
 
 
-@app.route('/text/audio', methods=['POST'])
+@app.route('/api/text/audio', methods=['POST'])
 def text_to_audio():
     try:
         data = request.get_json()
@@ -76,5 +83,75 @@ def text_to_audio():
         return jsonify({"error": f"Failed to convert text to speech due to {e}"}), 500
 
 
+@app.route('/api/news/overview', methods=['POST'])
+def get_overall_summary__insights():
+    try:
+        data = request.get_json()
+        articles = data["articles"]
+
+        if (not isinstance(articles, list)) or len(articles) == 0:
+            return jsonify({"error": "Please provide list of articles"}), 400
+
+        for index, article in enumerate(articles):
+            if not isinstance(article, dict) or "title" not in article or "summary" not in article:
+                return jsonify({
+                    "error": f"Article at index {index} is missing 'title' or 'summary'."
+                }), 400
+
+        joined_summary = "\n".join(
+            f"{article['title']} - {article['summary']}" for article in articles)
+
+        all_summary_response_status, all_summary_response_data = all_articles_summary_with_gemini(joined_summary)
+
+        if not all_summary_response_status:
+            return jsonify({"error": all_summary_response_data}), 400
+
+        # Response data will be in Markdown format
+        return jsonify({"data": all_summary_response_data}), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to summarize and provide insights on the articles due to {e}"}), 500
+
+
+@app.route("/api/news/analysis", methods=['POST'])
+def get_comparative_analysis():
+    try:
+        data = request.get_json()
+        articles = data["articles"]
+
+        if (not isinstance(articles, list)) or len(articles) == 0:
+            return jsonify({"error": "Please provide list of articles"}), 400
+
+        for index, article in enumerate(articles):
+            if not isinstance(article, dict) or "title" not in article or "summary" not in article:
+                return jsonify({
+                    "error": f"Article at index {index} is missing 'title' or 'summary'."
+                }), 400
+
+        joined_summary = "\n".join(
+            f"Article-{i + 1}: **{article['title']}** - {article['summary']}"
+            for i, article in enumerate(articles)
+        )
+
+        status, analysis = all_articles_comparative_analysis_with_gemini(joined_summary)
+
+        if not status:
+            return jsonify({"error": analysis}), 400
+
+        # Response data will be in Markdown format
+        return jsonify({"data": analysis}), 200
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to provide comparative analysis due to {e}"}), 500
+
+
+# Load port value
+PORT = os.getenv("FLASK_PORT", "5000")
+
+try:
+    PORT = int(PORT)
+except ValueError:
+    PORT = 5000
+
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=PORT)

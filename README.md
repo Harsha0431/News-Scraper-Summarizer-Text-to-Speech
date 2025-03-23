@@ -5,7 +5,7 @@
 
 This project is a **learning-focused exploration** of AI-powered text processing, **news summarization**, and **Flask API handling** using **Hugging Face models** and **Gradio** for UI.
 
----
+
 ## Table of Content
 
 1. [Key Features & Workflow](#Key%20Features%20&%20Workflow)
@@ -16,7 +16,7 @@ This project is a **learning-focused exploration** of AI-powered text processing
 6. [Future Enhancements](Future%20Enhancements)
 7. [Need Help?](#Need%20Help?)
 
----
+
 ### Key Features & Workflow:
 
 1. **Scrape News** → Fetch up to **10 news articles** (title and content) from Google News based on a company name.
@@ -38,7 +38,7 @@ While this is not a full **Retrieval-Augmented Generation (RAG) model**, it foll
 
 This project serves as a foundational step toward building more advanced AI applications.
 
----
+
 ## Objectives
 
 This project primarily focuses on **learning and exploration** of AI-powered text processing, summarization, and API handling using **Hugging Face models**, **Google News scraping**, and **Gradio UI**.
@@ -76,7 +76,7 @@ This project primarily focuses on **learning and exploration** of AI-powered tex
 - Exploring **Gemini API’s free-tier capabilities** for generative AI tasks.
 - **Using LLMs & Flask together** to create an end-to-end AI pipeline.
 
----
+
 ## Tech Stack Used
 
 This project integrates **AI models, web scraping, and Flask API development** with various libraries and tools.
@@ -102,7 +102,7 @@ This project integrates **AI models, web scraping, and Flask API development** w
 - **Python Community Edition (IDE)** – Primary development environment.
 - **Docker – Containerizes the application to ensure **portability and scalability**.
 
----
+
 ## Approach & Explorations  
 
 ### **How did I approach building the project?**  
@@ -115,7 +115,7 @@ The development process followed a structured, objective-driven workflow:
 4. **Sentiment & Insights** – Applied **TextBlob** for initial sentiment analysis and **Gemini AI** for deeper insights and comparative analysis.  
 5. **Text-to-Speech Conversion** – Used **gTTS** to generate **audio output** for summarized content.  
 
----
+
 ### **Challenges Faced & Solutions**  
 
 - **Integrating Hugging Face Models Efficiently**  
@@ -126,7 +126,7 @@ The development process followed a structured, objective-driven workflow:
   - Some articles had **incomplete or misleading metadata**, affecting content extraction.  
   - **Solution:** Applied **heuristic filtering** to remove unnecessary elements and improve extracted text quality.  
 
----
+
 ### **Exploring Different Models Before Finalizing One**  
 
 Before finalizing **BART-Large-CNN**, I explored various **open-source AI models**:  
@@ -137,7 +137,7 @@ Before finalizing **BART-Large-CNN**, I explored various **open-source AI models
 
 After testing, **BART-Large-CNN** was chosen for its **efficiency, lightweight processing, and high-quality summaries**. It was also well-suited to our content, allowing us to explore key concepts like **chunking and sliding window processing** for handling large text inputs effectively.
 
----
+
 ## Setup & Installation  
 
 Follow these steps to set up and run the project:  
@@ -199,14 +199,14 @@ This starts the **Flask backend API**.
 
 >**_NOTE:_** Extracting and summarizing data **may take up to 1 minute per article**, depending on content length and API response time.
 
----
+
 ## Future Enhancements  
 
 ### 1. Expanding News Sources
 - We can enhance web scraping by leveraging **Google News search queries** to fetch more relevant news articles:
 
   >`https://www.google.com/search?q=company:"{company_name}"+news&tbm=nws&start={skip_value}`
-
+   
 - This allows us to **dynamically fetch articles** related to a specific company or topic.  
 
 ### 2. Improving Summarization & Insights
@@ -222,7 +222,7 @@ This starts the **Flask backend API**.
 - Improve the **Flask API response time** by caching summaries for frequently requested articles.  
 - Expand **Gradio UI functionalities**, allowing users to interactively select articles and customize summary length.  
 
----
+
 ## Need Help?  
 
 I’d love to hear your suggestions and feedback! Your insights can help improve the project and make it more efficient.  

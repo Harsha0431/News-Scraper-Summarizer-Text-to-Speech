@@ -18,7 +18,6 @@ def text_to_speech_interface():
 
 
 def complete_ui():
-
     with ((gr.Blocks(css=get_news_ui_css(), theme=gr.themes.Default(text_size=gr.themes.sizes.text_lg))) as news_ui):
         gr.Markdown("## Company News Summary")
 
@@ -38,10 +37,6 @@ def complete_ui():
             "AudioSummary": None,
             "AccordionData": None
         })
-
-        articles_list_state = gr.State(value=[])
-
-        sentiment_summary_state = gr.State(value=None)
 
         # Input fields
         with gr.Column(elem_classes='input_container'):
@@ -66,11 +61,6 @@ def complete_ui():
         @gr.render(inputs=[company_name, max_articles, skip_value, use_gemini], triggers=[submit_btn.click])
         def render_data(company_name_val, max_articles_val, skip_value_val, use_gemini_val):
             try:
-                if len(articles_list_state.value) > 0:
-                    reset_ui_for_new_search()
-                    gr.Warning("Please click on Reset button and refresh the page before searching for a new query.")
-                    return
-
                 info_duration = 30 if use_gemini_val == "Yes" else 40
 
                 gr.Info(f"Hang tight... Loading articles related to {company_name_val}",
@@ -78,9 +68,6 @@ def complete_ui():
 
                 article_list, sentiment_summary, summary_audio = analyze_company(company_name_val, max_articles_val,
                                                                                  skip_value_val, use_gemini_val)
-
-                articles_list_state.value = article_list
-                sentiment_summary_state.value = sentiment_summary
 
                 if isinstance(article_list, str):
                     gr.Warning(article_list)
@@ -189,18 +176,102 @@ def complete_ui():
                     with gr.Column(visible=False) as analysis_failure_content:
                         analysis_failure_output = gr.Markdown()
 
+                # Get overall insights & summary
+                def tab_switched(prev_summarize_all_state):
+                    gr.Info("Loading overall insights & summary...", duration=60)
+                    prev_summarize_all_state["Failed"] = False
+                    prev_summarize_all_state["FailedMessage"] = None
+
+                    if prev_summarize_all_state["DataFetched"]:
+                        gr.Info("Please switch to Overall Insights & Summary tab.")
+                        return (
+                            gr.update(visible=False),  # Overview btn visibility
+                            gr.update(visible=True),  # Show the tab
+                            gr.update(visible=True),  # Show the success content
+                            gr.update(visible=False),  # Hide the loading content
+                            gr.update(visible=False),  # Hide the failure content
+                            prev_summarize_all_state["Data"],  # Update the success content
+                            prev_summarize_all_state["AudioSummary"],  # Audio summary
+                            gr.State(value=sentiment_summary),  # Sentiment summary
+                            prev_summarize_all_state["FailedMessage"],  # Update failed message
+                            # State variable
+                            prev_summarize_all_state
+                        )
+                    try:
+                        if len(article_list) == 0:
+                            prev_summarize_all_state["Failed"] = True
+                            prev_summarize_all_state["FailedMessage"] = (
+                                "There no any articles fetched to provide overall "
+                                "insights.")
+                            prev_summarize_all_state["Data"] = None
+                            prev_summarize_all_state["DataFetched"] = False
+                            prev_summarize_all_state["AudioSummary"] = None
+                            raise gr.Error(f"There no any articles fetched to provide overall insights.")
+
+                        joined_summary = "\n".join(
+                            f"{article_i['Title']} - {article_i['Summary']}" for article_i in article_list)
+
+                        all_summary_response_status, all_summary_response_data = all_articles_summary_with_gemini(
+                            joined_summary)
+
+                        if not all_summary_response_status:
+                            prev_summarize_all_state["Failed"] = True
+                            prev_summarize_all_state["FailedMessage"] = all_summary_response_data
+                            prev_summarize_all_state["Data"] = None
+                            prev_summarize_all_state["DataFetched"] = False
+                            prev_summarize_all_state["AudioSummary"] = None
+                            raise gr.Error(all_summary_response_data)
+
+                        prev_summarize_all_state["Failed"] = False
+                        prev_summarize_all_state["FailedMessage"] = None
+
+                        prev_summarize_all_state["DataFetched"] = all_summary_response_status
+                        prev_summarize_all_state["Data"] = all_summary_response_data
+
+                        prev_summarize_all_state["AudioSummary"] = generate_audio(markdown_to_plain_text(
+                            all_summary_response_data))
+
+                    except Exception as e:
+                        prev_summarize_all_state_failed = prev_summarize_all_state["Failed"]
+                        if not prev_summarize_all_state_failed:
+                            prev_summarize_all_state["Failed"] = True
+                            prev_summarize_all_state[
+                                "FailedMessage"] = f"Failed to summarize all the articles due to {e}"
+                            prev_summarize_all_state["Data"] = None
+                            prev_summarize_all_state["DataFetched"] = False
+                            prev_summarize_all_state["AudioSummary"] = None
+                            raise gr.Error(f"Failed to summarize all the articles due to {e}")
+
+                    gr.Info("Please switch to Overall Insights & Summary tab.")
+                    return (
+                        gr.update(visible=False),  # Overview btn visibility
+                        gr.update(visible=True),  # Show the tab
+                        gr.update(visible=True),  # Show the success content
+                        gr.update(visible=False),  # Hide the loading content
+                        gr.update(visible=False),  # Hide the failure content
+                        prev_summarize_all_state["Data"],  # Update the success content
+                        prev_summarize_all_state["AudioSummary"],  # Audio summary
+                        gr.State(value=sentiment_summary),  # Sentiment summary
+                        prev_summarize_all_state["FailedMessage"],  # Update failed message
+                        # State variable
+                        prev_summarize_all_state
+                    )
+
                 # Show overview tab and fetch required data
-                overview_show_btn.click(fn=tab_switched, inputs=[], outputs=[
-                    overview_show_btn,  # Overview btn visibility
-                    overview_tab,  # Tab visibility
-                    overview_success_content,  # Success content visibility
-                    overview_loading_content,  # Loading content visibility
-                    overview_failure_content,  # Failure content visibility
-                    overview_summary_output,  # Success content data
-                    overview_summary_audio,  # Audio summary
-                    overview_sentiment_summary,  # Sentiment summary
-                    overview_failure_output,  # Failure content data
-                ])
+                overview_show_btn.click(fn=tab_switched, inputs=[summarize_all_state],
+                                        outputs=[
+                                            overview_show_btn,  # Overview btn visibility
+                                            overview_tab,  # Tab visibility
+                                            overview_success_content,  # Success content visibility
+                                            overview_loading_content,  # Loading content visibility
+                                            overview_failure_content,  # Failure content visibility
+                                            overview_summary_output,  # Success content data
+                                            overview_summary_audio,  # Audio summary
+                                            overview_sentiment_summary,  # Sentiment summary
+                                            overview_failure_output,  # Failure content data
+                                            # State variable updated
+                                            summarize_all_state
+                                        ])
 
                 def unload_news_ui():
                     overview_tab.visible = False  # Tab visibility
@@ -214,38 +285,125 @@ def complete_ui():
                     analysis_loading_content.visible = False  # Loading content visibility
                     analysis_failure_content.visible = False  # Failure content visibility
 
-                    summarize_all_state.value["DataFetched"] = False
-                    summarize_all_state.value["Data"] = None
-                    summarize_all_state.value["Failed"] = False
-                    summarize_all_state.value["FailedMessage"] = None
-                    summarize_all_state.value["AudioSummary"] = None
+                    summarize_all_state.value = {
+                        "DataFetched": False,
+                        "Data": None,
+                        "Failed": False,
+                        "FailedMessage": None,
+                        "AudioSummary": None
+                    }
 
-                    comparative_analysis_state.value["DataFetched"] = False
-                    comparative_analysis_state.value["Data"] = None
-                    comparative_analysis_state.value["Failed"] = False
-                    comparative_analysis_state.value["FailedMessage"] = None
-                    comparative_analysis_state.value["AudioSummary"] = None
-                    comparative_analysis_state.value["AccordionData"] = None
-
-                    sentiment_summary_state.value = None
-
-                    articles_list_state.value = []
+                    comparative_analysis_state.value = {
+                        "DataFetched": False,
+                        "Data": None,
+                        "Failed": False,
+                        "FailedMessage": None,
+                        "AudioSummary": None,
+                        "AccordionData": None
+                    }
 
                 # Unload gradio component
                 news_ui.unload(fn=unload_news_ui)
 
+                # Fetch comparative analysis
+                def get_comparative_analysis_data(prev_comparative_analysis_state):
+                    gr.Info("Loading comparative analysis...", duration=60)
+                    prev_comparative_analysis_state["Failed"] = False
+                    prev_comparative_analysis_state["FailedMessage"] = None
+
+                    try:
+                        if prev_comparative_analysis_state["DataFetched"]:
+                            gr.Info("Please switch to Comparative Analysis tab.")
+                            return (
+                                gr.update(visible=False),  # Comparative analysis btn visibility
+                                gr.update(visible=True),  # Show the tab
+                                gr.update(visible=True),  # Show the success content
+                                gr.update(visible=False),  # Hide the loading content
+                                gr.update(visible=False),  # Hide the failure content
+                                prev_comparative_analysis_state["Data"],  # Update the success content
+                                prev_comparative_analysis_state["AudioSummary"],  # Audio summary
+                                prev_comparative_analysis_state["FailedMessage"],  # Update failed message
+                                prev_comparative_analysis_state["AccordionData"],  # Accordion data
+                                # State variable
+                                prev_comparative_analysis_state
+                            )
+
+                        joined_summary = "\n".join(
+                            f"Article-{index + 1}: **{article_i['Title']}** - {article_i['Summary']}"
+                            for index, article_i in enumerate(article_list)
+                        )
+
+                        ca_status, comparative_analysis_response_data = all_articles_comparative_analysis_with_gemini(
+                            joined_summary)
+
+                        if not ca_status:
+                            prev_comparative_analysis_state["Failed"] = True
+                            prev_comparative_analysis_state["FailedMessage"] = comparative_analysis_response_data
+                            prev_comparative_analysis_state["Data"] = None
+                            prev_comparative_analysis_state["DataFetched"] = False
+                            prev_comparative_analysis_state["AudioSummary"] = None
+                            prev_comparative_analysis_state["AccordionData"] = None
+                            raise gr.Error(comparative_analysis_response_data)
+
+                        accordion_data = "\n".join(f"- Article {index + 1} - [{article_i['Title']}]({article_i['URL']})"
+                                                   for index, article_i in enumerate(article_list)
+                                                   )
+
+                        prev_comparative_analysis_state["Failed"] = False
+                        prev_comparative_analysis_state["FailedMessage"] = None
+
+                        prev_comparative_analysis_state["DataFetched"] = ca_status
+                        prev_comparative_analysis_state["Data"] = comparative_analysis_response_data
+
+                        prev_comparative_analysis_state["AudioSummary"] = generate_audio(markdown_to_plain_text(
+                            comparative_analysis_response_data))
+
+                        prev_comparative_analysis_state["AccordionData"] = accordion_data
+
+                    except Exception as e:
+                        prev_summarize_all_state_failed = prev_comparative_analysis_state["Failed"]
+                        if not prev_summarize_all_state_failed:
+                            prev_comparative_analysis_state["Failed"] = True
+                            prev_comparative_analysis_state[
+                                "FailedMessage"] = f"Failed to get comparative analysis due to {e}"
+                            prev_comparative_analysis_state["Data"] = None
+                            prev_comparative_analysis_state["DataFetched"] = False
+                            prev_comparative_analysis_state["AudioSummary"] = None
+                            prev_comparative_analysis_state["AccordionData"] = None
+
+                            raise gr.Error(f"Failed to get comparative analysis due to {e}")
+
+                    gr.Info("Please switch to Comparative Analysis tab.")
+                    return (
+                        gr.update(visible=False),  # Comparative analysis btn visibility
+                        gr.update(visible=True),  # Show the tab
+                        gr.update(visible=True),  # Show the success content
+                        gr.update(visible=False),  # Hide the loading content
+                        gr.update(visible=False),  # Hide the failure content
+                        prev_comparative_analysis_state["Data"],  # Update the success content
+                        prev_comparative_analysis_state["AudioSummary"],  # Audio analysis
+                        prev_comparative_analysis_state["FailedMessage"],  # Update failed message
+                        prev_comparative_analysis_state["AccordionData"],  # Accordion data
+                        # State variable
+                        prev_comparative_analysis_state
+                    )
+
                 # Comparative analysis btn
-                comparative_analysis_btn.click(fn=get_comparative_analysis_data, inputs=[], outputs=[
-                    comparative_analysis_btn,  # Comparative analysis btn visibility
-                    analysis_tab,  # Tab visibility
-                    analysis_success_content,  # Success content visibility
-                    analysis_loading_content,  # Loading content visibility
-                    analysis_failure_content,  # Failure content visibility
-                    analysis_summary_output,  # Success content data
-                    analysis_summary_audio,  # Analysis audio
-                    analysis_failure_output,  # Failure content data
-                    analysis_articles_indies  # Accordion data
-                ])
+                comparative_analysis_btn.click(fn=get_comparative_analysis_data,
+                                               inputs=[comparative_analysis_state],
+                                               outputs=[
+                                                   comparative_analysis_btn,  # Comparative analysis btn visibility
+                                                   analysis_tab,  # Tab visibility
+                                                   analysis_success_content,  # Success content visibility
+                                                   analysis_loading_content,  # Loading content visibility
+                                                   analysis_failure_content,  # Failure content visibility
+                                                   analysis_summary_output,  # Success content data
+                                                   analysis_summary_audio,  # Analysis audio
+                                                   analysis_failure_output,  # Failure content data
+                                                   analysis_articles_indies,  # Accordion data
+                                                   # State variable
+                                                   comparative_analysis_state
+                                               ])
 
                 # Reset fields for new query
                 reset_btn.click(fn=reset_ui_for_new_search, inputs=[], outputs=[
@@ -253,23 +411,14 @@ def complete_ui():
                     overview_success_content,  # Success content visibility
                     overview_loading_content,  # Loading content visibility
                     overview_failure_content,  # Failure content visibility
-                    overview_summary_output,  # Success content data
-                    overview_summary_audio,  # Summary audio
-                    overview_failure_output,  # Failure content data
                     # Analysis tab data
                     analysis_tab,  # Tab visibility
                     analysis_success_content,  # Success content visibility
                     analysis_loading_content,  # Loading content visibility
                     analysis_failure_content,  # Failure content visibility
-                    analysis_summary_output,  # Success content data
-                    analysis_summary_audio,  # Analysis audio
-                    analysis_failure_output,  # Failure content data
-                    analysis_articles_indies,  # Accordion data,
                     # State variables
                     summarize_all_state,
                     comparative_analysis_state,
-                    sentiment_summary_state,
-                    articles_list_state
                 ])
 
             except Exception as e:
@@ -277,7 +426,7 @@ def complete_ui():
                 return
 
         def reset_ui_for_new_search():
-            summarize_all_state.value = {
+            summarize_all_state_reset = {
                 "DataFetched": False,
                 "Data": None,
                 "Failed": False,
@@ -285,7 +434,7 @@ def complete_ui():
                 "AudioSummary": None
             }
 
-            comparative_analysis_state.value = {
+            comparative_analysis_state_reset = {
                 "DataFetched": False,
                 "Data": None,
                 "Failed": False,
@@ -294,182 +443,21 @@ def complete_ui():
                 "AccordionData": None
             }
 
-            sentiment_summary_state.value = None
-
-            articles_list_state.value = []
+            gr.Info("Please continue with your next query.", duration=20)
 
             return (
                 gr.update(visible=False),  # Show the tab
                 gr.update(visible=False),  # Show the success content
                 gr.update(visible=False),  # Hide the loading content
                 gr.update(visible=False),  # Hide the failure content
-                summarize_all_state.value["Data"],  # Update the success content
-                summarize_all_state.value["AudioSummary"],
-                summarize_all_state.value["FailedMessage"],  # Update failed message
                 # Reset analysis tab data
                 gr.update(visible=False),  # Show the tab
                 gr.update(visible=False),  # Show the success content
                 gr.update(visible=False),  # Hide the loading content
                 gr.update(visible=False),  # Hide the failure content
-                comparative_analysis_state.value["Data"],  # Update the success content
-                comparative_analysis_state.value["AudioSummary"],  # Audio analysis
-                comparative_analysis_state.value["FailedMessage"],  # Update failed message
-                comparative_analysis_state.value["AccordionData"],  # Accordion data
                 # State variables
-                summarize_all_state,
-                comparative_analysis_state,
-                sentiment_summary_state,
-                articles_list_state
-            )
-
-        # Get overall insights & summary
-        def tab_switched():
-            gr.Info("Loading overall insights & summary...", duration=60)
-            summarize_all_state.value["Failed"] = False
-            summarize_all_state.value["FailedMessage"] = None
-            if summarize_all_state.value["DataFetched"]:
-                gr.Info("Please switch to Overall Insights & Summary tab.")
-                return (
-                    gr.update(visible=False),  # Overview btn visibility
-                    gr.update(visible=True),  # Show the tab
-                    gr.update(visible=True),  # Show the success content
-                    gr.update(visible=False),  # Hide the loading content
-                    gr.update(visible=False),  # Hide the failure content
-                    summarize_all_state.value["Data"],  # Update the success content
-                    summarize_all_state.value["AudioSummary"],  # Audio summary
-                    sentiment_summary_state.value,  # Sentiment summary
-                    summarize_all_state.value["FailedMessage"],  # Update failed message
-                )
-            try:
-                if len(articles_list_state.value) == 0:
-                    summarize_all_state.value["Failed"] = True
-                    summarize_all_state.value["FailedMessage"] = ("There no any articles fetched to provide overall "
-                                                                  "insights.")
-                    summarize_all_state.value["Data"] = None
-                    summarize_all_state.value["DataFetched"] = False
-                    summarize_all_state.value["AudioSummary"] = None
-                    raise gr.Error(f"There no any articles fetched to provide overall insights.")
-
-                joined_summary = "\n".join(
-                    f"{article['Title']} - {article['Summary']}" for article in articles_list_state.value)
-
-                all_summary_response_status, all_summary_response_data = all_articles_summary_with_gemini(
-                    joined_summary)
-
-                if not all_summary_response_status:
-                    summarize_all_state.value["Failed"] = True
-                    summarize_all_state.value["FailedMessage"] = all_summary_response_data
-                    summarize_all_state.value["Data"] = None
-                    summarize_all_state.value["DataFetched"] = False
-                    summarize_all_state.value["AudioSummary"] = None
-                    raise gr.Error(all_summary_response_data)
-
-                summarize_all_state.value["Failed"] = False
-                summarize_all_state.value["FailedMessage"] = None
-
-                summarize_all_state.value["DataFetched"] = all_summary_response_status
-                summarize_all_state.value["Data"] = all_summary_response_data
-
-                summarize_all_state.value["AudioSummary"] = generate_audio(markdown_to_plain_text(
-                    all_summary_response_data))
-
-            except Exception as e:
-                prev_summarize_all_state_failed = summarize_all_state.value["Failed"]
-                if not prev_summarize_all_state_failed:
-                    summarize_all_state.value["Failed"] = True
-                    summarize_all_state.value["FailedMessage"] = f"Failed to summarize all the articles due to {e}"
-                    summarize_all_state.value["Data"] = None
-                    summarize_all_state.value["DataFetched"] = False
-                    summarize_all_state.value["AudioSummary"] = None
-                    raise gr.Error(f"Failed to summarize all the articles due to {e}")
-
-            gr.Info("Please switch to Overall Insights & Summary tab.")
-            return (
-                gr.update(visible=False),  # Overview btn visibility
-                gr.update(visible=True),  # Show the tab
-                gr.update(visible=True),  # Show the success content
-                gr.update(visible=False),  # Hide the loading content
-                gr.update(visible=False),  # Hide the failure content
-                summarize_all_state.value["Data"],  # Update the success content
-                summarize_all_state.value["AudioSummary"],  # Audio summary
-                sentiment_summary_state.value,  # Sentiment summary
-                summarize_all_state.value["FailedMessage"],  # Update failed message
-            )
-
-        def get_comparative_analysis_data():
-            gr.Info("Loading comparative analysis...", duration=60)
-            comparative_analysis_state.value["Failed"] = False
-            comparative_analysis_state.value["FailedMessage"] = None
-
-            try:
-                if comparative_analysis_state.value["DataFetched"]:
-                    gr.Info("Please switch to Comparative Analysis tab.")
-                    return (
-                        gr.update(visible=False),  # Comparative analysis btn visibility
-                        gr.update(visible=True),  # Show the tab
-                        gr.update(visible=True),  # Show the success content
-                        gr.update(visible=False),  # Hide the loading content
-                        gr.update(visible=False),  # Hide the failure content
-                        comparative_analysis_state.value["Data"],  # Update the success content
-                        comparative_analysis_state.value["AudioSummary"],  # Audio summary
-                        comparative_analysis_state.value["FailedMessage"],  # Update failed message
-                        comparative_analysis_state.value["AccordionData"]  # Accordion data
-                    )
-
-                joined_summary = "\n".join(
-                    f"Article-{i + 1}: **{article['Title']}** - {article['Summary']}"
-                    for i, article in enumerate(articles_list_state.value)
-                )
-
-                comparative_analysis_status, comparative_analysis_response_data = all_articles_comparative_analysis_with_gemini(
-                    joined_summary)
-
-                if not comparative_analysis_status:
-                    comparative_analysis_state.value["Failed"] = True
-                    comparative_analysis_state.value["FailedMessage"] = comparative_analysis_response_data
-                    comparative_analysis_state.value["Data"] = None
-                    comparative_analysis_state.value["DataFetched"] = False
-                    comparative_analysis_state.value["AudioSummary"] = None
-                    comparative_analysis_state.value["AccordionData"] = None
-                    raise gr.Error(all_summary_response_data)
-
-                accordion_data = "\n".join(f"- Article {i + 1} - [{article['Title']}]({article['URL']})"
-                                           for i, article in enumerate(articles_list_state.value)
-                                           )
-
-                comparative_analysis_state.value["Failed"] = False
-                comparative_analysis_state.value["FailedMessage"] = None
-
-                comparative_analysis_state.value["DataFetched"] = comparative_analysis_status
-                comparative_analysis_state.value["Data"] = comparative_analysis_response_data
-
-                comparative_analysis_state.value["AudioSummary"] = generate_audio(markdown_to_plain_text(
-                    comparative_analysis_response_data))
-
-                comparative_analysis_state.value["AccordionData"] = accordion_data
-
-            except Exception as e:
-                prev_summarize_all_state_failed = comparative_analysis_state.value["Failed"]
-                if not prev_summarize_all_state_failed:
-                    comparative_analysis_state.value["Failed"] = True
-                    comparative_analysis_state.value["FailedMessage"] = f"Failed to get comparative analysis due to {e}"
-                    comparative_analysis_state.value["Data"] = None
-                    comparative_analysis_state.value["DataFetched"] = False
-                    comparative_analysis_state.value["AudioSummary"] = None
-                    comparative_analysis_state.value["AccordionData"] = None
-                    raise gr.Error(f"Failed to get comparative analysis due to {e}")
-
-            gr.Info("Please switch to Comparative Analysis tab.")
-            return (
-                gr.update(visible=False),  # Comparative analysis btn visibility
-                gr.update(visible=True),  # Show the tab
-                gr.update(visible=True),  # Show the success content
-                gr.update(visible=False),  # Hide the loading content
-                gr.update(visible=False),  # Hide the failure content
-                comparative_analysis_state.value["Data"],  # Update the success content
-                comparative_analysis_state.value["AudioSummary"],  # Audio analysis
-                comparative_analysis_state.value["FailedMessage"],  # Update failed message
-                comparative_analysis_state.value["AccordionData"]  # Accordion data
+                gr.State(value=summarize_all_state_reset),
+                gr.State(comparative_analysis_state_reset),
             )
 
     news_ui.launch(share=True)

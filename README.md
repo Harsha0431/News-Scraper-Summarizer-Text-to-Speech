@@ -33,7 +33,8 @@ News Article Processing Funnel
 Web Scraping
 Article Summarization
 Display Summary
-Insights Generation![image](https://github.com/user-attachments/assets/55fb57ed-878d-44fe-9342-aa72a5b7cf00)
+Insights Generation![image](https://github.com/user-attachments/assets/ab4b4d44-31a7-4a6f-81d0-187569105ac3)
+
 
 
 

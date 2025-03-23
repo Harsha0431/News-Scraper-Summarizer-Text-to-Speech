@@ -20,7 +20,7 @@ This project is a **learning-focused exploration** of AI-powered text processing
 ## **Key Features & Workflow:**
 
 1. **Scrape News** → Fetch up to **10 news articles** (title and content) from Google News based on a company name.
-2. **Summarization & Analysis** → Use **BART and Gemini AI** to generate:
+2. **Summarization & Analysis** → Use **BART and Gemini API** to generate:
 	- Summarization
     - Key insights and trends
     - Sentiment analysis
@@ -50,7 +50,7 @@ This project primarily focuses on **learning and exploration** of AI-powered tex
     - Identify and filter **static pages** (excluding JavaScript-heavy content).
     - Fetch and store up to **10 relevant articles** for further processing.
 
-2. **Summarization using LLMs (BART & Gemini AI)**
+2. **Summarization using LLMs (BART & Gemini API)**
     - Use `facebook/bart-large-cnn` (efficient yet powerful) for summarization.
     - **Chunk large articles** into smaller parts, summarize each, and combine the results.
     - Optionally use **Gemini API** for high-quality, multi-faceted summaries.
@@ -59,7 +59,7 @@ This project primarily focuses on **learning and exploration** of AI-powered tex
     - Convert summarized text to **speech output** using `gTTS` for accessibility.
 
 4. **Insight Extraction & Sentiment Analysis**
-    - Utilize **Gemini AI** to analyze trends, positive/negative points, and comparisons.
+    - Utilize **Gemini API** to analyze trends, positive/negative points, and comparisons.
     - Generate **actionable insights** from summarized content.
 
 5. **Build an AI-powered UI using Gradio**
@@ -83,7 +83,7 @@ This project integrates **AI models, web scraping, and Flask API development** w
 
 ### 1. AI & NLP Models
    - **Transformers (`transformers`)** – Used Hugging Face’s `facebook/bart-large-cnn` for **text summarization**.
-   - **Gemini AI (Gemini 2.0 Flash)** – Provides **deep insights, comparative analysis, and sentiment understanding**.
+   - **Gemini API (Gemini 2.0 Flash)** – Provides **deep insights, comparative analysis, and sentiment understanding**.
    - **TextBlob (`textblob`)** – Used for **initial sentiment analysis** of news titles and content.
 
 ### 2. Web Scraping & Data Processing
@@ -112,7 +112,7 @@ The development process followed a structured, objective-driven workflow:
 1. **Scraping Data** – Extracted **news links** from Google News using **BeautifulSoup** while handling JavaScript-heavy pages.  
 2. **Fetching Article Content** – Retrieved **titles and full content** from extracted URLs while ensuring minimal noise.  
 3. **Summarization** – Processed the article content using **Hugging Face’s `facebook/bart-large-cnn` model** for extracting key points.  
-4. **Sentiment & Insights** – Applied **TextBlob** for initial sentiment analysis and **Gemini AI** for deeper insights and comparative analysis.  
+4. **Sentiment & Insights** – Applied **TextBlob** for initial sentiment analysis and **Gemini API** for deeper insights and comparative analysis.  
 5. **Text-to-Speech Conversion** – Used **gTTS** to generate **audio output** for summarized content.  
 
 

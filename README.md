@@ -1,6 +1,6 @@
 # AI News Scraper & Summarizer with Text-to-Speech
 
-## Introduction
+## **Introduction**
 
 This project is a **learning-focused exploration** of AI-powered text processing, **news summarization**, and **Flask API handling** using **Hugging Face models** and **Gradio** for UI.
 
@@ -17,7 +17,7 @@ This project is a **learning-focused exploration** of AI-powered text processing
 8. [Need Help?](#Need-Help?)
 
 
-### Key Features & Workflow:
+## **Key Features & Workflow:**
 
 1. **Scrape News** → Fetch up to **10 news articles** (title and content) from Google News based on a company name.
 2. **Summarization & Analysis** → Use **BART and Gemini AI** to generate:
@@ -39,7 +39,7 @@ While this is not a full **Retrieval-Augmented Generation (RAG) model**, it foll
 This project serves as a foundational step toward building more advanced AI applications.
 
 
-## Objectives
+## **Objectives**
 
 This project primarily focuses on **learning and exploration** of AI-powered text processing, summarization, and API handling using **Hugging Face models**, **Google News scraping**, and **Gradio UI**.
 
@@ -77,7 +77,7 @@ This project primarily focuses on **learning and exploration** of AI-powered tex
 - **Using LLMs & Flask together** to create an end-to-end AI pipeline.
 
 
-## Tech Stack Used
+## **Tech Stack Used**
 
 This project integrates **AI models, web scraping, and Flask API development** with various libraries and tools.
 
@@ -103,7 +103,7 @@ This project integrates **AI models, web scraping, and Flask API development** w
 - **Docker – Containerizes the application to ensure **portability and scalability**.
 
 
-## Approach & Explorations  
+## **Approach & Explorations**  
 
 ### **How did I approach building the project?**  
 
@@ -146,7 +146,7 @@ Before finalizing **BART-Large-CNN**, I explored various **open-source AI models
 After testing, **BART-Large-CNN** was chosen for its **efficiency, lightweight processing, and high-quality summaries**. It was also well-suited to our content, allowing us to explore key concepts like **chunking and sliding window processing** for handling large text inputs effectively.
 
 
-## Performance Analysis
+## **Performance Analysis**
 
 | **Metric**                                                                                                                                          | **Value**                                                                              |
 | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -155,7 +155,7 @@ After testing, **BART-Large-CNN** was chosen for its **efficiency, lightweight p
 | **Comparative Sentiment Analysis**<br><sub>Overall Sentiment Distribution, Key Positive Themes, Key Negative Themes, and Comparative Insights</sub> | **1-2 minutes**                                                                        |
 
 
-## Setup & Installation  
+## **Setup & Installation**  
 
 Follow these steps to set up and run the project:  
 ### 0. Prerequisites
@@ -217,7 +217,7 @@ This starts the **Flask backend API**.
 >**_NOTE:_** Extracting and summarizing data **may take up to 1 minute per article**, depending on content length and API response time.
 
 
-## Future Enhancements  
+## **Future Enhancements**
 
 ### 1. Expanding News Sources
 - We can enhance web scraping by leveraging **Google News search queries** to fetch more relevant news articles:
@@ -240,7 +240,7 @@ This starts the **Flask backend API**.
 - Expand **Gradio UI functionalities**, allowing users to interactively select articles and customize summary length.  
 
 
-## Need Help?  
+## **Need Help?**
 
 I’d love to hear your suggestions and feedback! Your insights can help improve the project and make it more efficient.  
 

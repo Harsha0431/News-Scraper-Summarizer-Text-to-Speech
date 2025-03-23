@@ -1,4 +1,3 @@
-
 # AI News Scraper & Summarizer with Text-to-Speech
 
 ## Introduction
@@ -12,9 +11,10 @@ This project is a **learning-focused exploration** of AI-powered text processing
 2. [Objectives](#Objectives)
 3. [Tech Stack Used](#Tech%20Stack%20Used)
 4. [Approach & Explorations](#Approach%20&%20Explorations)
-5. [Setup & Installation](#Setup%20&%20Installation)
-6. [Future Enhancements](Future%20Enhancements)
-7. [Need Help?](#Need%20Help?)
+5. [Performance Analysis](#Performance%20Analysis)
+6. [Setup & Installation](#Setup%20&%20Installation)
+7. [Future Enhancements](#Future%20Enhancements)
+8. [Need Help?](#Need%20Help?)
 
 
 ### Key Features & Workflow:
@@ -124,7 +124,15 @@ The development process followed a structured, objective-driven workflow:
 
 - **Handling Different Article Formats**  
   - Some articles had **incomplete or misleading metadata**, affecting content extraction.  
-  - **Solution:** Applied **heuristic filtering** to remove unnecessary elements and improve extracted text quality.  
+  - **Solution:** Applied **heuristic filtering** to remove unnecessary elements and improve extracted text quality. 
+
+- **Model Selection & Exploration**
+  - Tested models like **Deepseek, Mistral, Phi-2, Ollama, Falcon**, but found them **too resource-intensive**.
+  - **Final Decision:** Chose `BART-Large-CNN` for its **efficiency & summarization quality**.
+
+- **Resource Constraints**
+  - **Challenge:** Running large Hugging Face models on **16GB RAM + GTX 1650**.
+  - **Solution:** Used **model quantization & batch processing** to optimize performance.
 
 
 ### **Exploring Different Models Before Finalizing One**  
@@ -136,6 +144,15 @@ Before finalizing **BART-Large-CNN**, I explored various **open-source AI models
 3. **Ollama & Falcon** – Required additional **credentials and setup overhead**, making them less suitable.  
 
 After testing, **BART-Large-CNN** was chosen for its **efficiency, lightweight processing, and high-quality summaries**. It was also well-suited to our content, allowing us to explore key concepts like **chunking and sliding window processing** for handling large text inputs effectively.
+
+
+## Performance Analysis
+
+| **Metric**                                                                                                                                          | **Value**                                                                              |
+| --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Scrapping and providing summary for each article with TTS (Hindi)                                                                                   | **30-50 sec/article** (Needs optimization)<br><sub>30-40 sec/article with Gemini</sub> |
+| **Overview**<br><sub>Key Insights, Trends, Sentiment analysis, and Keywords</sub>                                                                   | *1-2 minutes**                                                                         |
+| **Comparative Sentiment Analysis**<br><sub>Overall Sentiment Distribution, Key Positive Themes, Key Negative Themes, and Comparative Insights</sub> | **1-2 minutes**                                                                        |
 
 
 ## Setup & Installation  

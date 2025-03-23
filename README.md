@@ -7,7 +7,7 @@ This project is a **learning-focused exploration** of AI-powered text processing
 
 ## Table of Content
 
-1. [Key Features & Workflow](#Key-Features-&-Workflow)
+1. [Key Features & Workflow](#Key-Features--Workflow)
 2. [Objectives](#Objectives)
 3. [Tech Stack Used](#Tech-Stack-Used)
 4. [Approach & Explorations](#Approach-&-Explorations)

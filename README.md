@@ -29,6 +29,14 @@ This project is a **learning-focused exploration** of AI-powered text processing
 3. **Text-to-Speech** → Convert summaries into **speech output** for accessibility.
 4. **Flask API Integration** → A **Flask backend** was explored to handle user requests and return responses in JSON format.
 
+News Article Processing Funnel
+Web Scraping
+Article Summarization
+Display Summary
+Insights Generation![image](https://github.com/user-attachments/assets/55fb57ed-878d-44fe-9342-aa72a5b7cf00)
+
+
+
 While this is not a full **Retrieval-Augmented Generation (RAG) model**, it follows a similar **fetch-process-generate** workflow. This project helped me get started with:
 
 - **Scraping & processing real-world data**

@@ -45,8 +45,8 @@ def analyze_company(company, max_articles=10, skip=0, use_gemini=False):
     use_gemini = use_gemini == "Yes"
 
     if use_gemini:
-        if max_articles > 5:
-            max_articles = 5
+        if max_articles > 12:
+            max_articles = 12
     else:
         if max_articles > 10:
             max_articles = 10

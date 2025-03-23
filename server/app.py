@@ -43,14 +43,14 @@ def complete_ui():
             company_name = gr.Textbox(label="Enter Company Name")
 
             with gr.Row():
-                max_articles = gr.Number(label="Max Articles (Less than 10)", value=5, minimum=1, maximum=10, step=1,
-                                         min_width=250)
+                max_articles = gr.Number(label="Max Articles (Less than or equal to 12)", value=5, minimum=1,
+                                         maximum=12, step=1, min_width=250)
                 skip_value = gr.Number(label="Skip Value (Pagination)", value=0, minimum=0, step=1, min_width=250)
 
                 use_gemini = gr.Radio(
                     ["No", "Yes"],
-                    label="Use Gemini AI?", value="No", interactive=True,
-                    info="Gemini AI can extract a maximum of 5 articles at a time. Avoid excessive usage.",
+                    label="Use Gemini AI? (Default BERT model from HF)", value="No", interactive=True,
+                    info="Gemini AI can extract a maximum of 12 articles at a time else maximum of 10 articles.",
                     min_width=300
                 )
 

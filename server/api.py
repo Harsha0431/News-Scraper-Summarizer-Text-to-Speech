@@ -26,8 +26,8 @@ def get_news():
         if isinstance(limit, str):
             try:
                 limit = int(limit)
-                if limit > 10:
-                    limit = 10
+                if limit > 12:
+                    limit = 12
             except Exception:
                 limit = 5
 
@@ -45,8 +45,8 @@ def get_news():
         else:
             use_gemini_ai = False
 
-        if use_gemini_ai and limit > 5:
-            limit = 5
+        if not use_gemini_ai and limit > 10:
+            limit = 10
 
         articles, sentiment_summary = get_news_summary_sentiment(company, limit, skip, use_gemini_ai)
 

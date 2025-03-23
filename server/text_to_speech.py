@@ -11,6 +11,7 @@ AUDIO_DIR = "audio"
 os.makedirs(AUDIO_DIR, exist_ok=True)
 
 
+# Deamon background running process, to remove old audio files to save storage
 def clean_old_audio(max_age_seconds=7200):  # 2 hour
     """Removes audio files older than max_age_seconds."""
     now = time.time()

@@ -5,24 +5,41 @@ from summarizer import summarize_article_content
 
 
 def get_google_news_links(company_name, max_articles=10, skip=0):
-    search_url = f'https://www.google.com/search?q=company:"{company_name}"+news&tbm=nws'
-
+    start = skip
     headers = {"User-Agent": "Mozilla/5.0"}
 
-    response = requests.get(search_url, headers=headers)
-    soup = BeautifulSoup(response.text, "html.parser")
-
-    # Extract news links
     links = []
-    for link in soup.select("a[href^='/url?q=']"):  # Google search links
-        url = link["href"].split("&")[0].replace("/url?q=", "")
-        if "google.com" not in url:  # Filter out Google redirect links
-            links.append(url)
+
+    while len(links) < max_articles:
+        search_url = f'https://www.google.com/search?q=company:"{company_name}"+news&tbm=nws&start={start}'
+        response = requests.get(search_url, headers=headers)
+
+        if response.status_code != 200:
+            print(f"Error fetching data: {response.status_code}")
+            break
+
+        soup = BeautifulSoup(response.text, "html.parser")
+
+        # Extract news links
+        new_links = []
+        links_found = 0
+        for link in soup.select("a[href^='/url?q=']"):  # Google search links
+            links_found += 1
+            url = link["href"].split("&")[0].replace("/url?q=", "")
+            if "google.com" not in url and url not in links:  # Filter out Google links & duplicates
+                new_links.append(url)
+
+        links.extend(new_links)
+
+        if len(new_links) == 0:
+            break
+
+        start += links_found + 1
 
     if max_articles < 10:
         max_articles = max_articles*2
 
-    return links[skip:max_articles]
+    return links[:max_articles]
 
 
 def is_static_page(url):

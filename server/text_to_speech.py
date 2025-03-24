@@ -11,7 +11,7 @@ AUDIO_DIR = "audio"
 os.makedirs(AUDIO_DIR, exist_ok=True)
 
 
-# Deamon background running process, to remove old audio files to save storage
+# Daemon background running process, to remove old audio files to save storage
 def clean_old_audio(max_age_seconds=7200):  # 2 hour
     """Removes audio files older than max_age_seconds."""
     now = time.time()
@@ -34,6 +34,7 @@ def generate_audio(text, lang="hi"):
         random_value = random.randint(1000, 9999)
         filename = f"{AUDIO_DIR}/{timestamp}_{random_value}.mp3"
         tts.save(filename)
+        time.sleep(1)
         return filename
     except Exception as e:
         print(f"Error generating audio: {e}")

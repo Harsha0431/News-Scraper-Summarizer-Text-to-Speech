@@ -177,12 +177,11 @@ def complete_ui():
                         analysis_failure_output = gr.Markdown()
 
                 # Get overall insights & summary
-                def tab_switched(prev_summarize_all_state):
+                def tab_switched():
                     gr.Info("Loading overall insights & summary...", duration=60)
-                    prev_summarize_all_state["Failed"] = False
-                    prev_summarize_all_state["FailedMessage"] = None
+                    prev_summarize_all_state = {"Failed": False, "FailedMessage": None}
 
-                    if prev_summarize_all_state["DataFetched"]:
+                    if "DataFetched" in prev_summarize_all_state and prev_summarize_all_state["DataFetched"]:
                         gr.Info("Please switch to Overall Insights & Summary tab.")
                         return (
                             gr.update(visible=False),  # Overview btn visibility
@@ -195,7 +194,7 @@ def complete_ui():
                             gr.State(value=sentiment_summary),  # Sentiment summary
                             prev_summarize_all_state["FailedMessage"],  # Update failed message
                             # State variable
-                            prev_summarize_all_state
+                            gr.State(prev_summarize_all_state)
                         )
                     try:
                         if len(article_list) == 0:
@@ -232,7 +231,7 @@ def complete_ui():
                             all_summary_response_data))
 
                     except Exception as e:
-                        prev_summarize_all_state_failed = prev_summarize_all_state["Failed"]
+                        prev_summarize_all_state_failed = prev_summarize_all_state.get("Failed", True)
                         if not prev_summarize_all_state_failed:
                             prev_summarize_all_state["Failed"] = True
                             prev_summarize_all_state[
@@ -254,11 +253,11 @@ def complete_ui():
                         gr.State(value=sentiment_summary),  # Sentiment summary
                         prev_summarize_all_state["FailedMessage"],  # Update failed message
                         # State variable
-                        prev_summarize_all_state
+                        gr.State(prev_summarize_all_state)
                     )
 
                 # Show overview tab and fetch required data
-                overview_show_btn.click(fn=tab_switched, inputs=[summarize_all_state],
+                overview_show_btn.click(fn=tab_switched, inputs=[],
                                         outputs=[
                                             overview_show_btn,  # Overview btn visibility
                                             overview_tab,  # Tab visibility
@@ -306,13 +305,12 @@ def complete_ui():
                 news_ui.unload(fn=unload_news_ui)
 
                 # Fetch comparative analysis
-                def get_comparative_analysis_data(prev_comparative_analysis_state):
+                def get_comparative_analysis_data():
                     gr.Info("Loading comparative analysis...", duration=60)
-                    prev_comparative_analysis_state["Failed"] = False
-                    prev_comparative_analysis_state["FailedMessage"] = None
+                    prev_comparative_analysis_state = {"Failed": False, "FailedMessage": None}
 
                     try:
-                        if prev_comparative_analysis_state["DataFetched"]:
+                        if "DataFetched" in prev_comparative_analysis_state and prev_comparative_analysis_state["DataFetched"]:
                             gr.Info("Please switch to Comparative Analysis tab.")
                             return (
                                 gr.update(visible=False),  # Comparative analysis btn visibility
@@ -325,7 +323,7 @@ def complete_ui():
                                 prev_comparative_analysis_state["FailedMessage"],  # Update failed message
                                 prev_comparative_analysis_state["AccordionData"],  # Accordion data
                                 # State variable
-                                prev_comparative_analysis_state
+                                gr.State(prev_comparative_analysis_state)
                             )
 
                         joined_summary = "\n".join(
@@ -358,10 +356,10 @@ def complete_ui():
                         prev_comparative_analysis_state["AudioSummary"] = generate_audio(markdown_to_plain_text(
                             comparative_analysis_response_data))
 
-                        prev_comparative_analysis_state["AccordionData"] = accordion_data
+                        prev_comparative_analysis_state["AccordionData"] = accordion_data if accordion_data else None
 
                     except Exception as e:
-                        prev_summarize_all_state_failed = prev_comparative_analysis_state["Failed"]
+                        prev_summarize_all_state_failed = prev_comparative_analysis_state.get("Failed", True)
                         if not prev_summarize_all_state_failed:
                             prev_comparative_analysis_state["Failed"] = True
                             prev_comparative_analysis_state[
@@ -385,12 +383,12 @@ def complete_ui():
                         prev_comparative_analysis_state["FailedMessage"],  # Update failed message
                         prev_comparative_analysis_state["AccordionData"],  # Accordion data
                         # State variable
-                        prev_comparative_analysis_state
+                        gr.State(prev_comparative_analysis_state)
                     )
 
                 # Comparative analysis btn
                 comparative_analysis_btn.click(fn=get_comparative_analysis_data,
-                                               inputs=[comparative_analysis_state],
+                                               inputs=[],
                                                outputs=[
                                                    comparative_analysis_btn,  # Comparative analysis btn visibility
                                                    analysis_tab,  # Tab visibility

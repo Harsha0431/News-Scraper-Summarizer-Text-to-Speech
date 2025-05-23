@@ -109,7 +109,7 @@ This project integrates **AI models, web scraping, and Flask API development** w
 ### 5. Optional Tools
 - **Postman** – Used for **API testing and debugging**.
 - **Python Community Edition (IDE)** – Primary development environment.
-- **Docker – Containerizes the application to ensure **portability and scalability**.
+- **Docker** – Containerizes the application to ensure **portability and scalability**.
 
 
 ## **Approach & Explorations**  
